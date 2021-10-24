@@ -18,3 +18,31 @@ This description has been found here:
 
 The License is Apache2 License, as stated by Thomas Mahler.
 See file LICENSE-2.0.txt for details.
+
+
+--------------------------------------------------------------------------------
+One file for is missing here, and it is a file from the book
+"ML for the Working Programmer".
+For license issues see here: https://www.cl.cam.ac.uk/~lp15/MLbook/
+
+The version used in the MG-book is that from 1991.
+It looks like it is not available anymore.
+
+There is that file from the 2nd edition, which you can get it here:
+  https://www.cl.cam.ac.uk/~lp15/MLbook/programs/sample9.sml
+
+But it looks like the version from the first edition must be scraped from the
+morphogrammatics book (see link above), page 251 (pdf-page 262).
+
+For changes of the sources (and the SML copilers),
+please see here:
+  https://www.cl.cam.ac.uk/~lp15/MLbook/
+--------------------------------------------------------------------------------
+Compilation of the sources will not work with current SML compilers.
+The reason is that in 1997 'value restriction' was added to SML.
+It's intended to change the code here, so that it can be compiled with current
+SML compilers.
+
+It's also intended here to use this old code as a reference implementation,
+providing test cases for a newer implementation using OCaml.
+--------------------------------------------------------------------------------
