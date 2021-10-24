@@ -46,3 +46,6 @@ SML compilers.
 It's also intended here to use this old code as a reference implementation,
 providing test cases for a newer implementation using OCaml.
 --------------------------------------------------------------------------------
+Explanation of the value restriction:
+  http://mlton.org/ValueRestriction
+--------------------------------------------------------------------------------
