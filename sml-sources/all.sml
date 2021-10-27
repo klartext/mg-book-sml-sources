@@ -5,7 +5,7 @@ fun reduce f u nil = u
    |reduce f u (x::xs)=
         f x (reduce f u xs);
         
-val flat = reduce append nil;
+fun flat l = reduce append nil l
 
 fun pair x y =(x,y);
 
@@ -38,12 +38,11 @@ and max l = max1 0 l
 and max1 n [] = n
    |max1 n (hd::tl)= if n>hd then max1 n tl
                      else max1 hd tl;
+
 exception Place;   
-(*fun pos n [] = raise Place
+fun pos n [] = raise Place
    |pos 1 (hd::tl) = hd
-   |pos n (hd::tl) =pos (n-1) tl;
-*)
-fun pos n l =nth(l,n-1);
+   |pos n (hd::tl) = pos (n-1) tl;
 
 fun replace item [] w = []
    |replace item (hd::tl) w =
@@ -74,9 +73,9 @@ type kseq = keno list;
 
 fun tnf ks =
   let
-    fun pos n [] = raise Nth
+    fun pos n [] = raise Place
        |pos 1 (hd::tl) = hd
-       |pos n (hd::tl) =pos (n-1) tl;
+       |pos n (hd::tl) = pos (n-1) tl;
        
     fun firstocc item list =
       let
@@ -602,9 +601,10 @@ fun set (i,j,x,mat)=
 
 fun L_1 kseq = 
   let
+   val epsilon = 0.0000000001;
    exception Subsystems; 
-   val n = 0.5+sqrt(0.25+real((length kseq) div 2));
-   val n = if real(floor n) = n then floor n
+   val n = 0.5+Math.sqrt(0.25+real((length kseq) div 2));
+   val n = if real(floor n) - n <= epsilon then floor n 
            else raise Subsystems; 
    val subs = subsystems n; 
    val mat = nlistof n (nlistof n 0); 
@@ -669,11 +669,11 @@ fun kstomm [] subs mat=mat
             (set (i,i,ii,(set (i,j,ij,(set (j,i,ji,(set (j,j,jj, mat)))))))) ;
             
 fun Kom mk =
-  let
-   
+  let   
    exception Compose;
-   val n = 0.5+sqrt(0.25+real(2*(length mk)));
-   val n = if real(floor n) = n then floor n
+   val epsilon = 0.0000000001;
+   val n = 0.5+Math.sqrt(0.25+real(2*(length mk)));
+   val n = if real(floor n) - n <= epsilon then floor n
            else raise Compose;
    val mat= nlistof n (nlistof n 1);
    val subsystems =subsystems n;
@@ -768,6 +768,9 @@ fun hauptdiag disj n =
                   else p)
        (nlist n)
   end;
+
+fun exists pred []      = false
+   |exists pred (x::xs) = if pred x then true else exists pred xs;
 
 fun alltouchedby disj alldisj n =
   let
@@ -889,9 +892,9 @@ fun FCtypes MK =
  
 fun exmm MK = 
   if (member (FCtypes MK) 
-       (allFCs (floor(0.5+sqrt(0.25+ 
+       (allFCs (floor(0.5+Math.sqrt(0.25+ 
                       real(2*(length MK))))))) 
-   then true 
+  then true 
   else false; 
 
 datatype gh=G|H;
@@ -1074,7 +1077,7 @@ fun MP n11 n12 n13 n22 n23 n24=
            (fromto (RR n11 n12 n13 n22 n23 n24) 
                    (M n11 n12 n13 n22 n23 n24))
  in
-  (map (fn x => (print x ; print " ")) alist;
+  (map (fn x => (print (Int.toString x); print " ")) alist;
   sum (RR n11 n12 n13 n22 n23 n24) (M n11 n12 n13 n22 n23 n24) 
       (fn m => a(n11,n12,n13,n22,n23,n24,m)))
  end;
