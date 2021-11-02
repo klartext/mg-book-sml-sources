@@ -18,6 +18,13 @@ module Kenogrammatics (
   , s
   , pContexture
   , allperms
+  , allsums
+  , allpartitions
+  , dContexture
+  , tContexture
+  , rd
+  , dtConcrete
+
 ) where
 import Data.List ( elemIndex )
 
@@ -33,11 +40,12 @@ instance Show KenogramSequence where
 asList :: KenogramSequence -> [Kenogram]
 asList (KenoSequence l) = l
 
+pos :: Int -> [a] -> a
+pos n list = list !! (n-1)
+
 tnf :: (Eq a, Ord a) => [a] -> KenogramSequence
 tnf ks =
   let
-    pos n list = list !! (n-1)
-
     firstocc item list = case elemIndex item list of
       Nothing    -> error "did not find element"
       Just index -> index + 1
@@ -103,7 +111,6 @@ sumWith from to f =
   if from > to then 0
   else f from + sumWith (from + 1) to f
 
-
 p (n, k)
   | k == 1 = 1
   | k >  n = 0
@@ -111,7 +118,6 @@ p (n, k)
   | otherwise = p(n-1,k-1) + p(n-k,k);
 
 dCard n = sumWith 1 n (\k -> p(n,k))
-
 
 s (n, k)
   | k == 1 = 1
@@ -132,44 +138,37 @@ combine a = map (a :)
 allperms []=[]
 allperms [x]=[[x]]
 allperms [x,y]=[[x,y],[y,x]]
-allperms l =
-  concatMap (\a -> combine a (allperms (filter (/= a) l))) l
+allperms l = concatMap (\a -> combine a (allperms (removeFirst a l))) l
+  where removeFirst x [] = []
+        removeFirst x (y:ys) = if x == y then ys else y:removeFirst x ys
+
+allsums n 1 = [[n]]
+allsums n k =
+  if n==k then [replicate n 1]
+  else concatMap (\e -> combine e (allsums (n-e) (k-1))) [1..(n-k+1)]
+
+allpartitions n k=
+  let
+    remdups [] = []
+    remdups (hd:tl) =
+      if any (`elem` tl) (allperms hd)
+        then remdups tl
+        else hd:remdups tl
+  in
+   remdups (allsums n k)
 
 
--- fun allsums n 1=[[n]]
---    |allsums n k= 
---      if (n=k) then [nlistof n 1]
---      else 
---        flat(map (fn e => combine e (allsums (n-e) (k-1)))
---                 (nlist (n-k+1)));               
+pdConcrete ks =
+   map (\p -> concatMap (\k -> replicate (pos k p) k)
+                         [1.. length (rd ks)])
+       (allpartitions (length ks) (length (rd ks)))
 
--- fun allpartitions n k=
---   let
---     fun Exists f [] = false
---        |Exists f (hd::tl)= 
---           if (f hd) then true
---           else Exists f tl;
---     fun remdups [] = []
---        |remdups (hd::tl)=
---           if Exists (fn x => (member x tl)) (allperms hd)
---             then remdups tl
---             else hd::(remdups tl);
---   in
---    remdups (allsums n k)
---   end;
-
--- fun PDconcrete ks =
---    map (fn p => flat (map (fn k => nlistof (pos k p) k)
---                          (nlist (length (rd ks)))))
---        (allpartitions (length ks) (length (rd ks)));
-
--- fun Dcontexture n =
---    flat(map PDconcrete (Pcontexture n));
+dContexture :: Int -> [KenogramSequence]
+dContexture n = map KenoSequence (concatMap (pdConcrete . asList) (pContexture n))
 
 
--- fun DTconcrete ks =
---    rd(map (fn i => tnf i)
---           (allperms ks));
+dtConcrete :: Ord a => [a] -> [KenogramSequence]
+dtConcrete ks = rd(map tnf (allperms ks))
 
--- fun Tcontexture n=
---    flat(map DTconcrete (Dcontexture n));
+tContexture :: Int -> [KenogramSequence]
+tContexture n = concatMap (dtConcrete . asList) (dContexture n)
