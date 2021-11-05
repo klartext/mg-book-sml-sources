@@ -24,7 +24,9 @@ module Kenogrammatics (
   , tContexture
   , rd
   , dtConcrete
-
+  , pairstructure
+  , enStructure
+  , teq'
 ) where
 import Data.List ( elemIndex )
 
@@ -172,3 +174,61 @@ dtConcrete ks = rd(map tnf (allperms ks))
 
 tContexture :: Int -> [KenogramSequence]
 tContexture n = concatMap (dtConcrete . asList) (dContexture n)
+
+{--
+Epsilon / Nu Structure
+--}
+data EN = E|N deriving (Show, Eq)
+
+delta :: Eq a => (Int, Int) -> [a] -> (Int, Int, EN)
+delta (i,j) z =
+   if pos i z == pos j z
+     then (i,j,E)
+     else (i,j,N);
+
+type ENstruc = [[(Int, Int, EN)]]
+
+{-- pairstructure n erzeugt die Struktur der möglichen Paare
+   für eine Sequenz der Länge n   
+--}
+pairstructure n =
+   map (\j -> map (\i -> (i,j)) [1..(j-1)])
+       [1..n]
+
+enStructure :: Eq a => [a] -> ENstruc
+enStructure z =
+   map (map (`delta` z))
+       (pairstructure (length z))
+
+
+teq' :: (Eq a1, Eq a2) => [a1] -> [a2] -> Bool
+teq' a b = enStructure a == enStructure b
+
+--exception Entoks;
+-- enToKs enstruc = 
+--   let
+--    entoks1 [] ks = ks 
+--    entoks1 ((f,s,en):tl) ks =
+--         let 
+--           val fir = pos f ks
+--           val sec = if (length ks< s) then [] else pos s ks
+--         in
+--          (if (en==E && sec==[])
+--           then entoks1 tl (ks ++ [fir])
+--           else if (en==E && (hd fir) `elem` sec)
+--             then entoks1 tl (replace sec ks fir)
+--           else if (en==E && not((hd fir) `elem` sec))
+--             then error "should not happen"
+--           else if (en=N andalso sec=[])
+--             then entoks1 tl (ks@[remove (hd fir) 
+--                          (nlist ((kmax ks)+1:int))])
+--           else if (en=N andalso fir=sec) 
+--             then raise Entoks
+--           else if (en=N andalso member (hd fir) sec)
+--             then entoks1 tl (replace sec ks
+--                                      (remove (hd fir) sec))
+--           else entoks1 tl ks)
+--         end;
+--   in               
+--     (flat (entoks1 (flat enstruc) [[1]]))
+--   end;
