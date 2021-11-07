@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Kenogrammatics (
     Kenogram
   , KenogramSequence
@@ -27,17 +28,18 @@ module Kenogrammatics (
   , pairstructure
   , enStructure
   , teq'
+  , enToKs
 ) where
 import Data.List ( elemIndex )
 
 type Kenogram = Int
-newtype KenogramSequence = KenoSequence [Kenogram] deriving (Eq, Ord)
+newtype KenogramSequence = KenoSequence [Kenogram] deriving (Eq, Ord, Show)
 
-instance Show KenogramSequence where
-  show (KenoSequence xs) =
-    let xs' = map toKenoSymbol xs
-     in show xs'
-    where toKenoSymbol i = "ABCDEFGHIJKLMNOPQRSTUVWXXYZ" !! (i-1)
+-- instance Show KenogramSequence where
+--   show (KenoSequence xs) =
+--     let xs' = map toKenoSymbol xs
+--      in show xs'
+--     where toKenoSymbol i = "ABCDEFGHIJKLMNOPQRSTUVWXXYZ" !! (i-1)
 
 asList :: KenogramSequence -> [Kenogram]
 asList (KenoSequence l) = l
@@ -204,31 +206,40 @@ enStructure z =
 teq' :: (Eq a1, Eq a2) => [a1] -> [a2] -> Bool
 teq' a b = enStructure a == enStructure b
 
---exception Entoks;
--- enToKs enstruc = 
---   let
---    entoks1 [] ks = ks 
---    entoks1 ((f,s,en):tl) ks =
---         let 
---           val fir = pos f ks
---           val sec = if (length ks< s) then [] else pos s ks
---         in
---          (if (en==E && sec==[])
---           then entoks1 tl (ks ++ [fir])
---           else if (en==E && (hd fir) `elem` sec)
---             then entoks1 tl (replace sec ks fir)
---           else if (en==E && not((hd fir) `elem` sec))
---             then error "should not happen"
---           else if (en=N andalso sec=[])
---             then entoks1 tl (ks@[remove (hd fir) 
---                          (nlist ((kmax ks)+1:int))])
---           else if (en=N andalso fir=sec) 
---             then raise Entoks
---           else if (en=N andalso member (hd fir) sec)
---             then entoks1 tl (replace sec ks
---                                      (remove (hd fir) sec))
---           else entoks1 tl ks)
---         end;
---   in               
---     (flat (entoks1 (flat enstruc) [[1]]))
---   end;
+
+replace :: Eq a => a -> [a] -> a -> [a]
+replace item [] w       = []
+replace item (hd:tl) w =
+        if hd==item then w:replace item tl w
+        else hd:replace item tl w;
+
+
+kmax :: (Ord a, Foldable t) => [t a] -> a
+kmax l = maximum (map maximum l)
+
+
+enToKs :: ENstruc -> KenogramSequence
+enToKs enstruc =
+  let
+   entoks1 [] ks = ks
+   entoks1 ((f,s,en):tl) ks =
+        let
+          fir = pos f ks
+          sec = if length ks < s then [] else pos s ks
+        in
+         (if en==E && null sec
+            then entoks1 tl (ks ++ [fir])
+            else if en==E && head fir `elem` sec
+              then entoks1 tl (replace sec ks fir)
+              else if en==E && notElem (head fir) sec
+                then error "can not find identical element"
+                else if en==N && null sec
+                  then entoks1 tl (ks++[filter (/= head fir) [1..kmax ks+1] ])
+                  else if en==N && fir==sec
+                    then error "an element must always be identical to itself"
+                    else if en==N && head fir `elem` sec
+                      then entoks1 tl (replace sec ks
+                                      (filter (/= head fir) sec))
+                      else entoks1 tl ks)
+  in
+    tnf (concat (entoks1 (concat enstruc) [[1]]))
