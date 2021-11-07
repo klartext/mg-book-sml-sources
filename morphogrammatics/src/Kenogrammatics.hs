@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+--{-# LANGUAGE FlexibleContexts #-}
 module Kenogrammatics (
     Kenogram
   , KenogramSequence
@@ -29,8 +29,15 @@ module Kenogrammatics (
   , enStructure
   , teq'
   , enToKs
+  , ag
+  , ee
+  , combinea
+  , tConcat
+  , dConcat
+  , pConcat
+  , (+++)
 ) where
-import Data.List ( elemIndex )
+import Data.List ( elemIndex, nub )
 
 type Kenogram = Int
 newtype KenogramSequence = KenoSequence [Kenogram] deriving (Eq, Ord, Show)
@@ -68,6 +75,9 @@ rd :: Eq a => [a] -> [a]
 rd []=[]
 rd [x]=[x]
 rd (x:xs) = x:rd(filter (/= x) xs);
+
+-- rd :: Eq a => [a] -> [a]
+-- rd = nub
 
 dnf :: Ord a => [a] -> KenogramSequence
 dnf ks =
@@ -208,7 +218,7 @@ teq' a b = enStructure a == enStructure b
 
 
 replace :: Eq a => a -> [a] -> a -> [a]
-replace item [] w       = []
+replace item [] w      = []
 replace item (hd:tl) w =
         if hd==item then w:replace item tl w
         else hd:replace item tl w;
@@ -243,3 +253,108 @@ enToKs enstruc =
                       else entoks1 tl ks)
   in
     tnf (concat (entoks1 (concat enstruc) [[1]]))
+
+-- concatenation of kenogram sequence
+ag :: [Int] -> Int
+ag = length . nub
+
+ee :: (Int, Int) -> [[Int]]
+ee (n,k) =
+  let
+    combinec item list = map (item :) list;
+
+    mkfg from to 0    = [[]]
+    mkfg from to step =
+          concatMap (\i -> combinec i (mkfg (i+1) to (step-1)))
+                    [from .. (max from to)]
+  in
+    mkfg  1 (n+1) k
+
+
+
+mappat :: [Int] -> [Int] -> [Int]
+mappat pat template=
+   map (`pos` template) pat;
+
+mkpats :: [Int] -> [Int] -> [[Int]]
+mkpats a b =
+  let
+    free n [] = []
+    free n (hd:tl) =
+          if hd<=n then hd:free n tl
+          else []
+    possperms [] ag   = []
+    possperms [x] ag  = [[x]]
+    possperms rest ag =
+          concatMap (\k -> combine k (possperms (filter (/= k) rest) (max k ag)))
+                    (free (ag+1) rest )
+  in
+    concatMap (\e -> possperms e (ag a))
+          (ee (ag a, ag b))
+
+
+combinea :: [a] -> [[a]] -> [[a]]
+combinea item = map (item ++)
+
+tConcat :: [Int] -> [Int] -> [[Int]]
+tConcat ks1 ks2 =
+   combinea ks1 (map (mappat ks2)
+                     (mkpats ks1 ks2))
+
+
+(+++) :: KenogramSequence -> KenogramSequence -> [KenogramSequence]
+(KenoSequence ks1) +++ (KenoSequence ks2) = map KenoSequence $ tConcat ks1 ks2
+
+
+dConcat :: [Int] -> [Int] -> [KenogramSequence]
+dConcat a b = nub $ map dnf (tConcat a b)
+
+pConcat :: [Int] -> [Int] -> [KenogramSequence]
+pConcat a b = nub $ map pnf (tConcat a b)
+
+{--}
+
+
+eCard (n,k) =
+  let
+   xi from to 0    = 1
+   xi from to step =
+         sumWith from to (\i -> xi (i+1) (max to (i+1)) (step-1))
+  in
+   xi 1 (n+1) k
+
+
+nn (a,b) =
+  let
+    m   = ee (ag a,ag b)
+    e i = pos i m
+    gn []     = 0
+    gn (x:xs) = if x>ag a+1 then 1+gn xs else gn xs
+  in
+    sumWith 1 (eCard(ag a,ag b))
+            (\i -> factorial (length (e i)) `div` factorial (1+gn(e i)) )
+
+factorial 0 = 1
+factorial n = n * factorial (n-1)
+
+
+
+collfits a [] rule = []
+collfits a (b:bs) rule @(x,y,en)
+  | en == E && pos x a == pos y b = b:collfits a bs rule
+  | en == N && pos x a /= pos y b = b:collfits a bs rule
+  | otherwise                     =   collfits a bs rule;
+
+
+mapvermat a bs []      = bs
+mapvermat a [] enstruc = []
+mapvermat a bs (rule:rules) = mapvermat a (collfits a bs rule) rules;
+
+kligate a b enstruc =
+   combinea a
+            (mapvermat a
+                       (map (mappat b)
+                            (mkpats a b))
+                       enstruc)
+
+
