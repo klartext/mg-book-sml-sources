@@ -316,8 +316,8 @@ fun kconcat ks1 ks2=
                      (mkpats ks1 ks2));
 
 
-fun Dconcat a b = dnf(kconcat a b);
-fun Pconcat a b = pnf(kconcat a b);
+fun Dconcat a b = rd (map dnf (kconcat a b));
+fun Pconcat a b = rd (map pnf (kconcat a b));
 
 
 fun Ekard (n,k) =
