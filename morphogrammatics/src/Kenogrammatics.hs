@@ -1,7 +1,9 @@
---{-# LANGUAGE FlexibleContexts #-}
 module Kenogrammatics (
     Kenogram
   , KenogramSequence
+  , EN (..)
+  , ENstruc
+  , ENrule
   , tnf
   , dnf
   , pnf
@@ -9,6 +11,7 @@ module Kenogrammatics (
   , deq
   , peq
   , asList
+  , asKeno
   , tRef
   , dRef
   , pRef
@@ -23,7 +26,6 @@ module Kenogrammatics (
   , allpartitions
   , dContexture
   , tContexture
-  , rd
   , dtConcrete
   , pairstructure
   , enStructure
@@ -35,24 +37,37 @@ module Kenogrammatics (
   , tConcat
   , dConcat
   , pConcat
-  , (+++)
+  , eCard
+  , nn
+  , kligate
 ) where
 import Data.List ( elemIndex, nub )
 
+{--
+  This module contains the implementation of chapter 3 "Kenogrammatik"
+--}
+
 type Kenogram = Int
-newtype KenogramSequence = KenoSequence [Kenogram] deriving (Eq, Ord, Show)
+newtype KenogramSequence = KS [Kenogram] deriving (Eq, Ord, Show)
 
 -- instance Show KenogramSequence where
---   show (KenoSequence xs) =
+--   show (KS xs) =
 --     let xs' = map toKenoSymbol xs
 --      in show xs'
 --     where toKenoSymbol i = "ABCDEFGHIJKLMNOPQRSTUVWXXYZ" !! (i-1)
+  
 
 asList :: KenogramSequence -> [Kenogram]
-asList (KenoSequence l) = l
+asList (KS l) = l
+
+asKeno :: [Int] -> KenogramSequence
+asKeno = tnf
 
 pos :: Int -> [a] -> a
 pos n list = list !! (n-1)
+
+remove :: Eq a => a -> [a] -> [a]
+remove item = filter (/= item)
 
 tnf :: (Eq a, Ord a) => [a] -> KenogramSequence
 tnf ks =
@@ -68,16 +83,8 @@ tnf ks =
         then tnf1 tl (res ++ [pos (firstocc (pos n ks) ks) res])(n+1) k
         else tnf1 tl (res ++ [k]) (n+1) (k+1);
   in
-    KenoSequence $ tnf1 ks [] 1 1
+    KS $ tnf1 ks [] 1 1
 
-
-rd :: Eq a => [a] -> [a]
-rd []=[]
-rd [x]=[x]
-rd (x:xs) = x:rd(filter (/= x) xs);
-
--- rd :: Eq a => [a] -> [a]
--- rd = nub
 
 dnf :: Ord a => [a] -> KenogramSequence
 dnf ks =
@@ -85,15 +92,15 @@ dnf ks =
     count x []= 0
     count x (y:ys)= (if x==y then 1 else 0)+count x ys
   in
-    KenoSequence $
+    KS $
       concatMap
         (\ k -> replicate (count k (asList (tnf ks))) k)
-        (rd (asList (tnf ks)))
+        (nub (asList (tnf ks)))
 
 
 pnf :: Ord a => [a] -> KenogramSequence
-pnf ks = KenoSequence $
-  replicate (length ks - length(rd ks)) 1 ++ asList(tnf(rd ks))
+pnf ks = KS $
+  replicate (length ks - length(nub ks)) 1 ++ asList(tnf(nub ks))
 
 
 teq :: (Ord a, Ord b) => [a] -> [b] -> Bool
@@ -120,35 +127,42 @@ pRef = pnf . asList . tRef
 pCard :: p -> p
 pCard n = n
 
-sumWith :: (Ord t, Num p, Num t) => t -> t -> (t -> p) -> p
-sumWith from to f =
+sumOver :: (Num p) => Int -> Int -> (Int -> p) -> p
+sumOver from to fun =
   if from > to then 0
-  else f from + sumWith (from + 1) to f
+  else fun from + sumOver (from + 1) to fun
 
+p :: (Int, Int) -> Int
 p (n, k)
   | k == 1 = 1
   | k >  n = 0
   | k == n = 1
   | otherwise = p(n-1,k-1) + p(n-k,k);
 
-dCard n = sumWith 1 n (\k -> p(n,k))
+dCard :: Int -> Int
+dCard n = sumOver 1 n (\k -> p(n,k))
 
+s :: (Int, Int) -> Int
 s (n, k)
   | k == 1 = 1
   | k >  n = 0
   | k == n = 1
   | otherwise = s(n-1,k-1) + k*s(n-1,k)
 
-tCard n = sumWith 1 n (\k -> s(n,k))
+tCard :: Int -> Int
+tCard n = sumOver 1 n (\k -> s(n,k))
 
 
+pContexture :: Int -> [KenogramSequence]
 pContexture n =
-   map (\k -> KenoSequence $ replicate (n-k) 1 ++ [1..k])
-       [1..n]
+  map (\k -> KS $ replicate (n-k) 1 ++ [1..k])
+      [1..n]
 
 
+combine :: a -> [[a]] -> [[a]]
 combine a = map (a :)
 
+allperms :: Eq t => [t] -> [[t]]
 allperms []=[]
 allperms [x]=[[x]]
 allperms [x,y]=[[x,y],[y,x]]
@@ -156,11 +170,13 @@ allperms l = concatMap (\a -> combine a (allperms (removeFirst a l))) l
   where removeFirst x [] = []
         removeFirst x (y:ys) = if x == y then ys else y:removeFirst x ys
 
+allsums :: Int -> Int -> [[Int]]
 allsums n 1 = [[n]]
 allsums n k =
   if n==k then [replicate n 1]
   else concatMap (\e -> combine e (allsums (n-e) (k-1))) [1..(n-k+1)]
 
+allpartitions :: Int -> Int -> [[Int]]
 allpartitions n k=
   let
     remdups [] = []
@@ -172,23 +188,24 @@ allpartitions n k=
    remdups (allsums n k)
 
 
+pdConcrete :: Eq a => [a] -> [[Int]]
 pdConcrete ks =
    map (\p -> concatMap (\k -> replicate (pos k p) k)
-                         [1.. length (rd ks)])
-       (allpartitions (length ks) (length (rd ks)))
+                         [1.. length (nub ks)])
+       (allpartitions (length ks) (length (nub ks)))
 
 dContexture :: Int -> [KenogramSequence]
-dContexture n = map KenoSequence (concatMap (pdConcrete . asList) (pContexture n))
+dContexture n = map KS (concatMap (pdConcrete . asList) (pContexture n))
 
 
 dtConcrete :: Ord a => [a] -> [KenogramSequence]
-dtConcrete ks = rd(map tnf (allperms ks))
+dtConcrete ks = nub(map tnf (allperms ks))
 
 tContexture :: Int -> [KenogramSequence]
 tContexture n = concatMap (dtConcrete . asList) (dContexture n)
 
 {--
-Epsilon / Nu Structure
+  Epsilon / Nu Structure
 --}
 data EN = E|N deriving (Show, Eq)
 
@@ -198,11 +215,11 @@ delta (i,j) z =
      then (i,j,E)
      else (i,j,N);
 
-type ENstruc = [[(Int, Int, EN)]]
+type ENrule  = (Int, Int, EN)
+type ENstruc = [[ENrule]]
 
-{-- pairstructure n erzeugt die Struktur der möglichen Paare
-   für eine Sequenz der Länge n   
---}
+-- | pairstructure n generates all possible pairs for a sequence of length n
+pairstructure :: (Num a, Enum a) => a -> [[(a, a)]]
 pairstructure n =
    map (\j -> map (\i -> (i,j)) [1..(j-1)])
        [1..n]
@@ -231,26 +248,25 @@ kmax l = maximum (map maximum l)
 enToKs :: ENstruc -> KenogramSequence
 enToKs enstruc =
   let
-   entoks1 [] ks = ks
-   entoks1 ((f,s,en):tl) ks =
-        let
-          fir = pos f ks
-          sec = if length ks < s then [] else pos s ks
-        in
-         (if en==E && null sec
-            then entoks1 tl (ks ++ [fir])
-            else if en==E && head fir `elem` sec
-              then entoks1 tl (replace sec ks fir)
-              else if en==E && notElem (head fir) sec
-                then error "can not find identical element"
-                else if en==N && null sec
-                  then entoks1 tl (ks++[filter (/= head fir) [1..kmax ks+1] ])
-                  else if en==N && fir==sec
-                    then error "an element must always be identical to itself"
-                    else if en==N && head fir `elem` sec
-                      then entoks1 tl (replace sec ks
-                                      (filter (/= head fir) sec))
-                      else entoks1 tl ks)
+    entoks1 [] ks = ks
+    entoks1 ((f,s,en):tl) ks =
+      let
+        fir = pos f ks
+        sec = if length ks < s then [] else pos s ks
+      in
+        if en==E && null sec
+          then entoks1 tl (ks ++ [fir])
+          else if en==E && head fir `elem` sec
+            then entoks1 tl (replace sec ks fir)
+            else if en==E && notElem (head fir) sec
+              then error "can not find identical element"
+              else if en==N && null sec
+                then entoks1 tl (ks++[remove (head fir) [1..kmax ks+1] ])
+                else if en==N && fir==sec
+                  then error "an element must always be identical to itself"
+                  else if en==N && head fir `elem` sec
+                    then entoks1 tl (replace sec ks (remove (head fir) sec))
+                    else entoks1 tl ks
   in
     tnf (concat (entoks1 (concat enstruc) [[1]]))
 
@@ -286,7 +302,7 @@ mkpats a b =
     possperms [] ag   = []
     possperms [x] ag  = [[x]]
     possperms rest ag =
-          concatMap (\k -> combine k (possperms (filter (/= k) rest) (max k ag)))
+          concatMap (\k -> combine k (possperms (remove k rest) (max k ag)))
                     (free (ag+1) rest )
   in
     concatMap (\e -> possperms e (ag a))
@@ -296,34 +312,30 @@ mkpats a b =
 combinea :: [a] -> [[a]] -> [[a]]
 combinea item = map (item ++)
 
-tConcat :: [Int] -> [Int] -> [[Int]]
-tConcat ks1 ks2 =
-   combinea ks1 (map (mappat ks2)
-                     (mkpats ks1 ks2))
+tConcat :: KenogramSequence -> KenogramSequence -> [KenogramSequence]
+tConcat (KS ks1) (KS ks2) =
+   map tnf 
+       (combinea ks1 (map (mappat ks2)
+                          (mkpats ks1 ks2)))
+
+dConcat :: KenogramSequence -> KenogramSequence -> [KenogramSequence]
+dConcat a b = nub $ map (dnf . asList) (tConcat a b)
+
+pConcat :: KenogramSequence -> KenogramSequence -> [KenogramSequence]
+pConcat a b = nub $ map (pnf . asList) (tConcat a b)
 
 
-(+++) :: KenogramSequence -> KenogramSequence -> [KenogramSequence]
-(KenoSequence ks1) +++ (KenoSequence ks2) = map KenoSequence $ tConcat ks1 ks2
-
-
-dConcat :: [Int] -> [Int] -> [KenogramSequence]
-dConcat a b = nub $ map dnf (tConcat a b)
-
-pConcat :: [Int] -> [Int] -> [KenogramSequence]
-pConcat a b = nub $ map pnf (tConcat a b)
-
-{--}
-
-
+eCard :: (Int, Int) -> Int
 eCard (n,k) =
   let
    xi from to 0    = 1
    xi from to step =
-         sumWith from to (\i -> xi (i+1) (max to (i+1)) (step-1))
+         sumOver from to (\i -> xi (i+1) (max to (i+1)) (step-1))
   in
    xi 1 (n+1) k
 
 
+nn :: ([Int], [Int]) -> Int
 nn (a,b) =
   let
     m   = ee (ag a,ag b)
@@ -331,30 +343,34 @@ nn (a,b) =
     gn []     = 0
     gn (x:xs) = if x>ag a+1 then 1+gn xs else gn xs
   in
-    sumWith 1 (eCard(ag a,ag b))
+    sumOver 1 (eCard(ag a,ag b))
             (\i -> factorial (length (e i)) `div` factorial (1+gn(e i)) )
 
+factorial :: Int -> Int
 factorial 0 = 1
 factorial n = n * factorial (n-1)
 
 
-
+collfits :: Eq a => [a] -> [[a]] -> ENrule -> [[a]]
 collfits a [] rule = []
 collfits a (b:bs) rule @(x,y,en)
   | en == E && pos x a == pos y b = b:collfits a bs rule
   | en == N && pos x a /= pos y b = b:collfits a bs rule
-  | otherwise                     =   collfits a bs rule;
+  | otherwise                     =   collfits a bs rule
 
 
+mapvermat :: Eq a => [a] -> [[a]] -> [ENrule] -> [[a]]
 mapvermat a bs []      = bs
 mapvermat a [] enstruc = []
-mapvermat a bs (rule:rules) = mapvermat a (collfits a bs rule) rules;
+mapvermat a bs (rule:rules) = mapvermat a (collfits a bs rule) rules
 
-kligate a b enstruc =
-   combinea a
-            (mapvermat a
-                       (map (mappat b)
-                            (mkpats a b))
-                       enstruc)
+kligate :: KenogramSequence -> KenogramSequence -> [ENrule] -> [KenogramSequence]
+kligate (KS a) (KS b) enstruc =
+  map tnf 
+      (combinea a
+        (mapvermat a
+          (map (mappat b)
+              (mkpats a b))
+          enstruc))
 
 
