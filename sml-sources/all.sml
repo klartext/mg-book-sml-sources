@@ -1,11 +1,11 @@
 (* Kapitel 4 Kenogrammatik *)
 fun append l m = l @ m;
 
-fun reduce f u nil = u
+fun reduce f u [] = u
    |reduce f u (x::xs)=
         f x (reduce f u xs);
         
-fun flat l = reduce append nil l
+fun flat l = reduce append [] l
 
 fun pair x y =(x,y);
 
@@ -15,7 +15,7 @@ fun allpairs xs ys=
 exception Fromto;
 fun fromto n m=
   if n>(m+1) then raise Fromto
-  else if n=m+1 then nil
+  else if n=m+1 then []
   else n::fromto (n+1) m;
   
 val nlist = fromto 1;
@@ -316,8 +316,8 @@ fun kconcat ks1 ks2=
                      (mkpats ks1 ks2));
 
 
-fun Dconcat a b = dnf(kconcat a b);
-fun Pconcat a b = pnf(kconcat a b);
+fun Dconcat a b = rd (map dnf (kconcat a b));
+fun Pconcat a b = rd (map pnf (kconcat a b));
 
 
 fun Ekard (n,k) =
@@ -515,7 +515,7 @@ fun kmul [] b = [[]]
                                  
                    (rd kyet));
                
-        fun kmul1 a nil used res = res 
+        fun kmul1 a [] used res = res 
            |kmul1 a (hd::tl) used res =
               kmul1 a tl (hd::used)
                  (flat(map (fn x => kligate x a 
@@ -694,7 +694,7 @@ fun assoc x [] = raise Assoc
                             else assoc x rest;
 
 
-fun filter p nil = nil
+fun filter p [] = []
    |filter p (x::xs) =
       if p x then x :: filter p xs
       else filter p xs;
@@ -1066,7 +1066,7 @@ fun a (n11,n12,n13,n22,n23,n24,m) =
 exception Fromto;
 fun fromto n m =
   if n>m+1 then raise Fromto
-  else if n=m+1 then nil
+  else if n=m+1 then []
   else n::fromto (n+1) m;
 
 
