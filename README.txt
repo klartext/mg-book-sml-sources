@@ -1,5 +1,5 @@
-This repository contains the sourcecode of the following book:
-==============================================================
+This repository contains sourcecode of the following book:
+==========================================================
 
 --------------------------------------------------------------------------------
 Thomas Mahler & Rudolf Kaehr
@@ -20,8 +20,10 @@ The License is Apache2 License, as stated by Thomas Mahler.
 See file LICENSE-2.0.txt for details.
 
 
+The code can be found in the directory "sml-sources".
+
 --------------------------------------------------------------------------------
-One file for is missing here, and it is a file from the book
+One file that was included in the book is missing here; it is a file from the book
 "ML for the Working Programmer".
 For license issues see here: https://www.cl.cam.ac.uk/~lp15/MLbook/
 
@@ -38,20 +40,19 @@ For changes of the sources (and the SML copilers),
 please see here:
   https://www.cl.cam.ac.uk/~lp15/MLbook/
 --------------------------------------------------------------------------------
-Compilation of the sources will not work for all files with current SML compilers.
-The reason is that in 1997 'value restriction' was added to SML.
-It's intended to change the code here, so that it can be compiled with current
-SML compilers.
 
-The file "all.sml" has been fixed by Thomas Mahler, so that it can be used.
-Use SML/NJ for it.
+The original SML sources from the MG-Book failed to compile.
+The reason is that in 1997 'value restriction' was added to SML.
+( For explanation of the value restriction, see here for example: http://mlton.org/ValueRestriction )
+
+In the meantime the code has been changed, so that it now compiles.
+You can use it interactively with SMLNJ:
+
 Try it with
   $ smlnj all.sml
 and have fun.
 --------------------------------------------------------------------------------
-It's also intended here to use this old code as a reference implementation,
-providing test cases for a newer implementation using OCaml.
---------------------------------------------------------------------------------
-Explanation of the value restriction:
-  http://mlton.org/ValueRestriction
+
+Implementation of parts of the code are now also available in Haskell and OCaml.
+
 --------------------------------------------------------------------------------
