@@ -1,12 +1,12 @@
+(* Some MG-Book SML functions implmented using OCaml StdLib *)
 let append l m = l @ m
+let flat = List.flatten
+let member = List.mem
+let reduce f u lst = List.fold_right f lst u
+let pos n lst = List.nth lst (n-1)
 
 
-let rec reduce f u lst =
-  match lst with
-    [] -> u
-  | (x::xs) -> f x (reduce f u xs)
- 
-let flat l = reduce append [] l
+(* Plainly ported stuff from SML to OCaml *)
 
 let pair x y = (x,y)
 
@@ -23,10 +23,6 @@ let rec fromto n m =
   
 let nlist = fromto 1
 
-let rec member x lst =
-  match lst with
-    [] -> false
-  | (hd::tl) -> (x=hd) || member x tl
 
 
 let combine x l = List.map (function y -> (x,y)) l
@@ -47,16 +43,4 @@ let maximum = function
   | x::xs -> List.fold_left max x xs
 
 let kmax ill = maximum (List.map maximum ill)
-
-let rec pos n lst = 
-  match lst with
-    [] -> invalid_arg "empty list"
-   | (hd::tl) -> 
-      match n with
-        1 -> hd 
-      | m -> pos (m-1) tl
-
-(*
-*)
-
 
