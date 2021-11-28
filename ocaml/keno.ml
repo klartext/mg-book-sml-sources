@@ -106,3 +106,40 @@ let rec powers m n =
    else m*(powers m (n-1))
 
 
+
+exception Place
+type keno = int
+type kseq = keno list
+
+
+let tnf ks =
+    let rec pos n lst = match n, lst with
+        | _, [] -> raise Place
+        | 1, (hd::tl) -> hd
+        | n, (hd::tl) -> pos (n-1) tl
+
+    and firstocc item lst =
+      let rec place1 item liste n = match item,liste, n with
+        | _ , [], _        -> raise Place
+        | item, (x::xs), n -> if item=x then n
+                                    else place1 item xs n+1
+      in
+        place1 item lst 1
+
+    and nfirst n lst = match n, lst with
+        | _, []       -> raise Place
+        | 1, (hd::tl) -> [hd]
+        | n, (hd::tl) -> hd::nfirst (n-1) tl
+
+    and tnf1 lst res n k = match lst, res, n, k with
+        | [], _, _ ,_ -> res
+       |(hd::tl), res, 1, k -> tnf1 tl [1] 2 2
+       |(hd::tl), res, n, k ->
+          if member (pos n ks) (nfirst (n-1) ks)
+          then tnf1 tl
+                  (res@[pos (firstocc (pos n ks) ks) res])(n+1) k
+          else tnf1 tl
+                  (res@[k]) (n+1) (k+1)
+  in
+    tnf1 ks [] 1 1
+
