@@ -1,3 +1,5 @@
+exception Integer_arithmetic_overflow_or_underflow
+
 (* Some MG-Book SML functions implmented using OCaml StdLib *)
 let append l m = l @ m
 let reduce f u lst = List.fold_right f lst u
@@ -78,3 +80,23 @@ let rec nlistof n item =
         | 0            -> []
         | x when x > 0 -> item :: nlistof (n-1) item
         | _            -> invalid_arg "neg. number"
+
+(* Fakulaet (n!) *)
+let rec _fak n = match n with
+    | 0 -> 1
+    | l -> l * _fak (l-1)
+
+(* Fakulaet (n!) *)
+(* wrapping _fak, because of int overflow issues; once there was a BitInt in OCaml Stdlib,
+  but it has been removed. Zarith module could be used instead (as recommended), but so far
+  I don't want to add additional dependencies. *)
+let fak n =
+    let res = _fak n in
+    if res < 0 || n > 33 then raise Integer_arithmetic_overflow_or_underflow else res
+
+
+(* number of combinations (n over k) AKA binomial coefficient *)
+let choose n k =
+   (fak n) / ((fak k) * fak (n-k))
+
+
