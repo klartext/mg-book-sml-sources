@@ -44,3 +44,4 @@ let maximum = function
 
 let kmax ill = maximum (List.map maximum ill)
 
+let pos n lst = List.nth lst (n-1)
