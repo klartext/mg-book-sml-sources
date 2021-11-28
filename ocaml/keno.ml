@@ -70,3 +70,10 @@ let rec rd lst =
         | [x] -> [x]
         | hd::tl -> hd :: rd(remove hd tl)
 
+
+(* create list with n elements, where each element is the given item *)
+let rec nlistof n item =
+    match n with
+        | 0            -> []
+        | x when x > 0 -> item :: nlistof (n-1) item
+        | _            -> invalid_arg "neg. number"
