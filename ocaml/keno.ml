@@ -51,6 +51,7 @@ let maximum = function
 (* get maximum element of list of lists *)
 let kmax ill = maximum (List.map maximum ill)
 
+(* from lst get element on position n (1st elem means n = 1) *)
 let pos n lst = List.nth lst (n-1)
 
 
