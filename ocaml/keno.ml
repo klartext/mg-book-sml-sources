@@ -1,8 +1,8 @@
 (* Some MG-Book SML functions implmented using OCaml StdLib *)
 let append l m = l @ m
+let reduce f u lst = List.fold_right f lst u
 let flat = List.flatten
 let member = List.mem
-let reduce f u lst = List.fold_right f lst u
 let pos n lst = List.nth lst (n-1)
 
 
