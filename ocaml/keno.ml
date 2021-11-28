@@ -99,4 +99,10 @@ let fak n =
 let choose n k =
    (fak n) / ((fak k) * fak (n-k))
 
+(* power function (m^n) *)
+let rec powers m n =
+   if n=0 then 1
+   else if n=1 then m
+   else m*(powers m (n-1))
+
 
