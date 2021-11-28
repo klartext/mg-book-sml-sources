@@ -155,4 +155,6 @@ let rec dnf ks =
         flat (List.map (fun k -> nlistof (count k (tnf ks)) k)
                   (rd (tnf ks)))
 
+(* PNF: Proto Normalform (Iterations-Abstraktion) *)
+let pnf ks = (nlistof (List.length ks - List.length (rd ks)) 1)@tnf(rd ks)
 
