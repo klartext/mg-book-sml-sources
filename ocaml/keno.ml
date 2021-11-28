@@ -23,7 +23,7 @@ let rec fromto n m =
   if n>(m+1) then raise Fromto
   else if n=m+1 then []
   else n::fromto (n+1) m
-  
+
 (* create int list from 1 to the argument given *)
 let nlist = fromto 1
 
@@ -37,10 +37,10 @@ let combine x l = List.map (function y -> (x,y)) l
 let rec remove x lst =
   match lst with
     [] -> []
-  | (hd::tl) -> 
+  | (hd::tl) ->
         if (x=hd) then remove x tl
         else hd::(remove x tl)
-       
+
 (* get last element of l *)
 let last l = List.hd(List.rev l)
 
@@ -112,6 +112,7 @@ type keno = int
 type kseq = keno list
 
 
+(* TNF: Trito Normalform (Wert-Abstraktion) *)
 let tnf ks =
     let rec pos n lst = match n, lst with
         | _, [] -> raise Place
@@ -145,7 +146,7 @@ let tnf ks =
 
 
 
-(* DNF: Deutero Normalform *)
+(* DNF: Deutero Normalform (Positions-Abstraktion) *)
 let rec dnf ks =
     let rec count x lst = match x,lst with
         | _, []  -> 0
