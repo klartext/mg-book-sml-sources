@@ -54,4 +54,10 @@ let rec replace item lst w =
                 else hd::(replace item tl w)
 
 
+(* remove duplicates from lst *)
+let rec rd lst =
+    match lst with
+        | [] -> []
+        | [x] -> [x]
+        | hd::tl -> hd :: rd(remove hd tl)
 
