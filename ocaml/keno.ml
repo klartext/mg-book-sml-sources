@@ -143,3 +143,15 @@ let tnf ks =
   in
     tnf1 ks [] 1 1
 
+
+
+(* DNF: Deutero Normalform *)
+let rec dnf ks =
+    let rec count x lst = match x,lst with
+        | _, []  -> 0
+        | x, (y::ys) -> (if x=y then 1 else 0) + count x ys
+    in
+        flat (List.map (fun k -> nlistof (count k (tnf ks)) k)
+                  (rd (tnf ks)))
+
+
