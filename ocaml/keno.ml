@@ -45,3 +45,13 @@ let maximum = function
 let kmax ill = maximum (List.map maximum ill)
 
 let pos n lst = List.nth lst (n-1)
+
+let rec replace item lst w =
+    match lst with
+    | [] -> []
+    | hd::tl ->
+                if (hd=item) then w::(replace item tl w)
+                else hd::(replace item tl w)
+
+
+
