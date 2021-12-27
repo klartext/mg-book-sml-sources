@@ -7,6 +7,8 @@ let flat = List.flatten
 let member = List.mem
 let pos n lst = List.nth lst (n-1)
 let exists = List.exists
+let map = List.map
+let length = List.length
 
 
 (* Ported stuff from SML to OCaml *)
@@ -15,7 +17,7 @@ let pair x y = (x,y)
 
 
 let allpairs xs ys =
-     flat(List.map(function x -> List.map (pair x) ys) xs)
+     flat(map(function x -> map (pair x) ys) xs)
 
 exception Fromto
 
@@ -31,7 +33,7 @@ let nlist = fromto 1
 
 
 (* create list of pairs with elemtn x as first member and list items as second member *)
-let combine x l = List.map (function y -> (x,y)) l
+let combine x l = map (function y -> (x,y)) l
 
 
 (* remove x from lst *)
@@ -52,7 +54,7 @@ let maximum = function
   | x::xs -> List.fold_left max x xs
 
 (* get maximum element of list of lists *)
-let kmax ill = maximum (List.map maximum ill)
+let kmax ill = maximum (map maximum ill)
 
 (* from lst get element on position n (1st elem means n = 1) *)
 let pos n lst = List.nth lst (n-1)
@@ -153,7 +155,7 @@ let rec dnf ks =
         | _, []  -> 0
         | x, (y::ys) -> (if x=y then 1 else 0) + count x ys
     in
-        flat (List.map (fun k -> nlistof (count k (tnf ks)) k)
+        flat (map (fun k -> nlistof (count k (tnf ks)) k)
                   (rd (tnf ks)))
 
 (* PNF: Proto Normalform (Iterations-Abstraktion) *)
@@ -202,14 +204,15 @@ let rec stirling (n,k) =
 let tcard n = sum 1 n (fun k -> stirling(n,k))
 
 
+(* calculating the PNF's of length n *)
 let pcontexture n =
-   List.map (fun k -> (nlistof (n-k) 1)@(nlist k))
+   map (fun k -> (nlistof (n-k) 1)@(nlist k))
        (nlist n)
 
 
 
 
-let combine a l = List.map (fun x -> a::x) l
+let combine a l = map (fun x -> a::x) l
 
 (* remove elem from lst *)
 let rec remov elem lst =
@@ -217,12 +220,14 @@ let rec remov elem lst =
         | x, [] -> []
         | x, (y::ys) -> if (x=y) then ys else y :: remov x ys
 
+
+(* create all permutations of elements in the input list as list of lists *)
 let rec allperms li =
     match li with
         | []      -> []
         | [x]     -> [[x]]
         | [x;y]   -> [ [x;y]; [y;x] ]
-        | l -> flat ( List.map (fun a -> combine a (allperms (remov a l))) l)
+        | l -> flat ( map (fun a -> combine a (allperms (remov a l))) l)
 
 
 let rec allsums n k =
@@ -231,7 +236,7 @@ let rec allsums n k =
         | n, k ->
                     if (n = k) then [nlistof n 1]
                     else
-                    flat ( List.map (fun e -> combine e (allsums (n-e) (k-1)))
+                    flat ( map (fun e -> combine e (allsums (n-e) (k-1)))
                             (nlist (n-k+1)))
 
 
