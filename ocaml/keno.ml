@@ -158,3 +158,10 @@ let rec dnf ks =
 (* PNF: Proto Normalform (Iterations-Abstraktion) *)
 let pnf ks = (nlistof (List.length ks - List.length (rd ks)) 1)@tnf(rd ks)
 
+
+(* comparison functions for trito/deutero/proto normal forms *)
+let teq a b = (tnf a = tnf b)
+let deq a b = (dnf a = dnf b)
+let peq a b = (pnf a = pnf b)
+
+
