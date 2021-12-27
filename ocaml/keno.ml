@@ -270,3 +270,29 @@ let dt_concrete ks =
 
 let t_contexture n=
    flat(map dt_concrete (dcontexture n));
+
+
+type en_t = E | N
+
+let delta (i,j) z =
+   if (pos i z) = (pos j z)
+   then (i,j,E)
+   else (i,j,N)
+
+type enstruc = (int * int * en_t) list list
+
+
+(* pairstructure n creates a strcuture of possible pairs for a sequence of length n *)
+let pairstructure n =
+   map ( fun j -> map (fun i -> (i,j))
+                      (fromto 1 (j-1))
+       ) (fromto 1 n)
+
+
+(* epsilon/nu structrure *)
+let en_structure z =
+   map (fun trl -> map (fun pair -> delta pair z)
+                      trl)
+       (pairstructure (length z))
+
+
