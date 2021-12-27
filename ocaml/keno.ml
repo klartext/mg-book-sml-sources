@@ -205,3 +205,21 @@ let pcontexture n =
    List.map (fun k -> (nlistof (n-k) 1)@(nlist k))
        (nlist n)
 
+
+
+
+let combine a l = List.map (fun x -> a::x) l
+
+(* remove elem from lst *)
+let rec remov elem lst =
+    match elem, lst with
+        | x, [] -> []
+        | x, (y::ys) -> if (x=y) then ys else y :: remov x ys
+
+let rec allperms li =
+    match li with
+        | []      -> []
+        | [x]     -> [[x]]
+        | [x;y]   -> [ [x;y]; [y;x] ]
+        | l -> flat ( List.map (fun a -> combine a (allperms (remov a l))) l)
+
