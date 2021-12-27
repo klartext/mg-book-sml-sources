@@ -6,6 +6,7 @@ let reduce f u lst = List.fold_right f lst u
 let flat = List.flatten
 let member = List.mem
 let pos n lst = List.nth lst (n-1)
+let exists = List.exists
 
 
 (* Ported stuff from SML to OCaml *)
@@ -223,3 +224,25 @@ let rec allperms li =
         | [x;y]   -> [ [x;y]; [y;x] ]
         | l -> flat ( List.map (fun a -> combine a (allperms (remov a l))) l)
 
+
+let rec allsums n k =
+    match n, k with
+        | n, 1 -> [[n]]
+        | n, k ->
+                    if (n = k) then [nlistof n 1]
+                    else
+                    flat ( List.map (fun e -> combine e (allsums (n-e) (k-1)))
+                            (nlist (n-k+1)))
+
+
+(* Exists -> List.exists, moved up *)
+
+(* remove duplicates from lst - (?) should be functionally the same as function 'rd' from above *)
+let rec remdups lst =
+    match lst with
+        | []         -> []
+        |hd :: tl    -> if exists (fun x -> (member x tl)) (allperms hd)
+                        then remdups tl
+                        else hd::(remdups tl)
+
+let allpartitions n k = remdups (allsums n k)
