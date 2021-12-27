@@ -295,4 +295,34 @@ let en_structure z =
                       trl)
        (pairstructure (length z))
 
+(* alternative implementation than before; see page 56 of mg-book *)
+let teq a b = (en_structure a) = (en_structure b)
+
+
+exception Entoks
+
+(* epsilon/nu structure to kenogram sequence; mg-book page 56 *)
+let en_to_ks (en_struc:enstruc) =
+  let rec entoks1 li ks =
+    match li, ks with
+        | [], ks            -> ks
+        |((f,s,en)::tl), ks ->
+            begin
+                let fir = pos f ks in
+                let sec = if (length ks < s) then [] else pos s ks in
+
+                 begin
+                    match en, sec with
+                        | E, [] -> entoks1 tl (ks@[fir])
+                        | E, sec_ when member (List.hd fir) sec_ -> entoks1 tl (replace sec_ ks fir)
+                        | E, sec_ when not (member (List.hd fir) sec_) -> raise Entoks
+                        | N, [] -> entoks1 tl (ks@[remove (List.hd fir) (nlist ((kmax ks)+1))])
+                        | N, sec_ when fir = sec_ -> raise Entoks
+                        | N, sec_ when member (List.hd fir) sec_ -> entoks1 tl (replace sec_ ks (remove (List.hd fir) sec_))
+                        | _ -> entoks1 tl ks
+                 end
+            end
+  in
+    (flat (entoks1 (flat en_struc) [[1]]))
+
 
