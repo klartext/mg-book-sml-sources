@@ -165,3 +165,43 @@ let deq a b = (dnf a = dnf b)
 let peq a b = (pnf a = pnf b)
 
 
+(* number/cardinality of normal forms / aequivalence classes of PNF's *)
+let pcard n = n
+
+let rec sum start endval f =
+    if (start > endval) then 0
+    else (f start) + sum  ( start + 1) endval f
+
+
+
+(* P / p: number of possible partitions *)
+let rec p (x,y) = match x, y with
+    | (n,1) -> 1
+    | (n,k) ->
+                 if k>n then 0
+                 else if k=n then 1
+                 else p(n-1,k-1) + p(n-k,k)
+
+
+(* number/cardinality of normal forms / aequivalence classes of DNF's *)
+let dcard n = sum 1 n (fun k -> p(n,k))
+
+
+(* S / stirling: stirling number of the second kind  *)
+let rec stirling (n,k) =
+    match n, k with
+        | n, 1 -> 1
+        | n, k ->
+                 if k > n then 0
+                 else if k = n then 1
+                 else stirling (n-1, k-1) + k * stirling (n-1, k)
+
+
+(* number/cardinality of normal forms / aequivalence classes of TNF's *)
+let tcard n = sum 1 n (fun k -> stirling(n,k))
+
+
+let pcontexture n =
+   List.map (fun k -> (nlistof (n-k) 1)@(nlist k))
+       (nlist n)
+
