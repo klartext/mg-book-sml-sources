@@ -250,4 +250,23 @@ let rec remdups lst =
                         then remdups tl
                         else hd::(remdups tl)
 
+
 let allpartitions n k = remdups (allsums n k)
+
+let pd_concrete ks =
+   map (fun p -> flat (map (fun k -> nlistof (pos k p) k)
+                         (nlist (length (rd ks)))))
+       (allpartitions (length ks) (length (rd ks)))
+
+
+(* calculating the DNF's of length n *)
+let dcontexture n =
+   flat(map pd_concrete (pcontexture n))
+
+
+
+let dt_concrete ks =
+    rd (map (fun i -> tnf i) (allperms ks))
+
+let t_contexture n=
+   flat(map dt_concrete (dcontexture n));
