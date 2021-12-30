@@ -301,7 +301,7 @@ let teq a b = (en_structure a) = (en_structure b)
 
 exception Entoks
 
-(* epsilon/nu structure to kenogram sequence; mg-book page 56 *)
+(* fun ENtoKS: epsilon/nu structure to kenogram sequence; mg-book page 56 *)
 let en_to_ks (en_struc:enstruc) =
   let rec entoks1 li ks =
     match li, ks with
@@ -326,3 +326,50 @@ let en_to_ks (en_struc:enstruc) =
     (flat (entoks1 (flat en_struc) [[1]]))
 
 
+(* Tref, Dref, Pref: kenogrammtic reflectors, mg-book page 57 *)
+let tref ks = tnf (List.rev ks)
+let dref ks = dnf (tref ks)
+let pref ks = pnf (tref ks)
+
+
+(* fun AG, mg-book page 58 *)
+let ag ks = length (rd ks)
+
+
+
+(* Now kenogrammatic concatenation (@), mg-book pages 58 - 59 *)
+let combinec item lst = map (fun x -> item :: x) lst
+
+let rec mkfg from to_ step =
+    match from, to_, step with
+        | f, t, 0        ->  [[]]
+        |from, to_, step -> flat( map ( fun i -> combinec i (mkfg (i+1) to_ (step-1)) )
+                                      (fromto from (max from to_)))
+let ee (n,k) = mkfg  1 (n+1) k
+
+
+let mappat pat template =
+   map (fun x -> pos x template) pat
+
+
+
+(* use sublist of elements; cut off rest of list, where an element  occurs, greater than n *)
+let rec free n (lst: int list) =
+    match n, lst with
+        | n, []      -> []
+        | n, (hd::tl) -> if hd <= n then hd::(free n tl) else []
+
+
+let rec possperms lst ag = match lst, ag with
+  | [],   ag   -> []
+  |[x],   ag  -> [[x]]
+  | rest, ag -> flat(map (fun k -> combine k (possperms (remov k rest) (max k (ag)))) (free (ag+1) rest ))
+
+
+let mkpats a b = flat (map (fun e -> possperms e (ag a)) (ee (ag a,ag b)))
+
+
+let combinea item lst= map (fun x ->  item@x) lst
+
+let kconcat ks1 ks2 =
+   combinea ks1 (map (fun pat -> mappat ks2 pat) (mkpats ks1 ks2))
