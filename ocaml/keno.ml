@@ -1,3 +1,8 @@
+(*
+    mg-book mentioned in comments below means the MorphoGrammatics book,
+    as can be found here:
+      http://www.vordenker.de/rk/tm-rk_Morphogrammatik_Buch_1993.pdf
+*)
 exception Integer_arithmetic_overflow_or_underflow
 
 (* Some MG-Book SML functions implmented using OCaml StdLib *)
