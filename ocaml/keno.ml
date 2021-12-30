@@ -392,3 +392,18 @@ let ekard (n,k) =
     in
         xi 1 (n+1) k
 
+
+(* function NN, mg-book page 63 *)
+let nn (a,b) =
+   let val_M = ee ((ag a),(ag b)) in
+   let e i = pos i val_M in
+
+   let rec gn lst = match lst with
+    | []    -> 0
+    | x::xs -> if ( x > ((ag a)+1) )
+                then 1+(gn xs)
+                else gn xs
+  in
+   sum 1 (ekard(ag a, ag b))
+       (fun i -> (fak (length (e i))) / (fak(1+gn(e i))) )
+
