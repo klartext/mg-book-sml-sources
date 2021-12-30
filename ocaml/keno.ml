@@ -378,3 +378,17 @@ let combinea item lst= map (fun x ->  item@x) lst
 
 let kconcat ks1 ks2 =
    combinea ks1 (map (fun pat -> mappat ks2 pat) (mkpats ks1 ks2))
+
+
+let dconcat a b = rd (map dnf (kconcat a b))
+let pconcat a b = rd (map pnf (kconcat a b))
+
+
+(* cardinality of E, mg-book page 63 *)
+let ekard (n,k) =
+    let rec xi from_ to_ step = match step with
+        | 0 -> 1
+        | _ -> sum from_ to_ (fun i -> xi (i+1) (max to_ (i+1)) (step-1))
+    in
+        xi 1 (n+1) k
+
